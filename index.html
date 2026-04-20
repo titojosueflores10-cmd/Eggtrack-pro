@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AviControl Pro — Gallinas Ponedoras</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;500;600;700;800&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-base: #0a0c0f;
+    --bg-card: #111418;
+    --bg-card2: #161b22;
+    --bg-input: #1c2128;
+    --border: #2d333b;
+    --border-light: #373e47;
+    --accent: #f0a500;
+    --accent2: #e07b00;
+    --accent-dim: rgba(240,165,0,0.12);
+    --green: #3fb950;
+    --green-dim: rgba(63,185,80,0.12);
+    --red: #f85149;
+    --red-dim: rgba(248,81,73,0.12);
+    --blue: #58a6ff;
+    --blue-dim: rgba(88,166,255,0.12);
+    --purple: #bc8cff;
+    --text: #e6edf3;
+    --text-muted: #7d8590;
+    --text-dim: #4a5260;
+    --font-head: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --radius: 8px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.5);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg-base);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  .app-header {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .app-logo {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--accent);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .app-logo span { color: var(--text); font-weight: 300; }
+  .app-logo .egg-icon { font-size: 20px; }
+  .batch-badge {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-family: var(--font-head);
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .batch-badge strong { color: var(--accent); }
+
+  /* TABS */
+  .app-tabs {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    padding: 0 24px;
+    gap: 0;
+  }
+  .tab-btn {
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 10px 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* MAIN */
+  .app-main { padding: 24px; max-width: 1400px; margin: 0 auto; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .card-title {
+    font-family: var(--font-head);
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  @media(max-width: 900px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* METRIC CARDS */
+  .metric-card {
+    background: var(--bg-card2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+  }
+  .metric-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  }
+  .metric-card.yellow::before { background: var(--accent); }
+  .metric-card.green::before { background: var(--green); }
+  .metric-card.red::before { background: var(--red); }
+  .metric-card.blue::before { background: var(--blue); }
+  .metric-card.purple::before { background: var(--purple); }
+  .metric-label {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .metric-value {
+    font-family: var(--font-head);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .metric-card.yellow .metric-value { color: var(--accent); }
+  .metric-card.green .metric-value { color: var(--green); }
+  .metric-card.red .metric-value { color: var(--red); }
+  .metric-card.blue .metric-value { color: var(--blue); }
+  .metric-card.purple .metric-value { color: var(--purple); }
+  .metric-sub { font-size: 12px; color: var(--text-muted); }
+  .metric-icon {
+    position: absolute; right: 16px; top: 16px;
+    font-size: 28px; opacity: 0.15;
+  }
+
+  /* FORMS */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-group label {
+    font-family: var(--font-head);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+  .form-group input, .form-group select, .form-group textarea {
+    background: var(--bg-input);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    padding: 8px 12px;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .form-group select option { background: var(--bg-input); }
+  .form-group .info-text { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  /* BUTTONS */
+  .btn {
+    font-family: var(--font-head);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 9px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: var(--accent2); }
+  .btn-secondary { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-danger { background: var(--red-dim); color: var(--red); border: 1px solid var(--red); }
+  .btn-danger:hover { background: var(--red); color: #fff; }
+  .btn-sm { font-size: 11px; padding: 5px 12px; }
+
+  /* TABLE */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th {
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:hover td { background: var(--bg-input); }
+  tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: var(--font-head);
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-yellow { background: var(--accent-dim); color: var(--accent); }
+  .badge-green { background: var(--green-dim); color: var(--green); }
+  .badge-red { background: var(--red-dim); color: var(--red); }
+  .badge-blue { background: var(--blue-dim); color: var(--blue); }
+  .badge-purple { background: rgba(188,140,255,0.12); color: var(--purple); }
+
+  /* CHART */
+  .chart-container { position: relative; height: 260px; }
+
+  /* PHASE INDICATOR */
+  .phase-bar {
+    background: var(--bg-input);
+    border-radius: 20px;
+    height: 6px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  .phase-bar-fill {
+    height: 100%;
+    border-radius: 20px;
+    background: linear-gradient(90deg, var(--accent), var(--green));
+    transition: width 0.5s;
+  }
+
+  /* PEAK BANNER */
+  .peak-banner {
+    background: linear-gradient(135deg, rgba(63,185,80,0.15), rgba(63,185,80,0.05));
+    border: 1px solid var(--green);
+    border-radius: var(--radius);
+    padding: 12px 18px;
+    margin-bottom: 16px;
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-head);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* ALERT */
+  .alert {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-size: 13px;
+    margin-bottom: 12px;
+  }
+  .alert-info { background: var(--blue-dim); border: 1px solid var(--blue); color: var(--blue); }
+  .alert-warn { background: var(--accent-dim); border: 1px solid var(--accent); color: var(--accent); }
+  .alert-success { background: var(--green-dim); border: 1px solid var(--green); color: var(--green); }
+  .alert-danger { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+
+  /* DIVIDER */
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center; padding: 48px 24px;
+    color: var(--text-dim);
+  }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+  .empty-state p { font-size: 15px; }
+
+  /* LOADING SPLASH */
+  #splash {
+    position: fixed; inset: 0;
+    background: var(--bg-base);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.4s;
+  }
+  #splash .splash-logo {
+    font-family: var(--font-head);
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--accent);
+    letter-spacing: 3px;
+  }
+  #splash .splash-sub { color: var(--text-muted); font-family: var(--font-head); font-size: 16px; letter-spacing: 2px; margin-top: 8px; }
+
+  /* SECTION HEADER */
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .section-title {
+    font-family: var(--font-head);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+  .section-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  /* UNIFORMITY INDICATOR */
+  .uniformity-gauge {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px;
+    background: var(--bg-input);
+    border-radius: var(--radius);
+  }
+  .gauge-circle {
+    width: 64px; height: 64px; border-radius: 50%;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: var(--font-head); font-weight: 800;
+    border: 3px solid currentColor;
+    flex-shrink: 0;
+    font-size: 18px;
+  }
+  .gauge-label { font-size: 9px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
+  .gauge-text { font-size: 11px; color: var(--text-muted); }
+
+  .del-btn {
+    background: none; border: none; color: var(--text-dim);
+    cursor: pointer; font-size: 14px; padding: 2px 6px;
+    border-radius: 4px; transition: all 0.15s;
+  }
+  .del-btn:hover { color: var(--red); background: var(--red-dim); }
+
+  input[type=number]::-webkit-inner-spin-button { opacity: 0.5; }
+  input[type=date]::-webkit-calendar-picker-indicator { filter: invert(0.5); }
+
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+    margin-right: 4px;
+  }
+  .dot-green { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .dot-yellow { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+  /* VERSION */
+  .app-version { 
+    text-align: center; padding: 16px;
+    color: var(--text-dim); font-size: 11px;
+    font-family: var(--font-head); letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">🥚 AVICONTROL</div>
+  <div class="splash-sub">Sistema de Control Técnico Avícola</div>
+</div>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-logo">
+    <span class="egg-icon">🥚</span>
+    AVICONTROL <span>PRO</span>
+  </div>
+  <div class="batch-badge" id="headerBatchInfo">Sin lote configurado</div>
+</header>
+
+<!-- TABS -->
+<nav class="app-tabs">
+  <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="tab-btn" onclick="switchTab('registro')">📝 Registro Diario</button>
+  <button class="tab-btn" onclick="switchTab('historial')">📋 Historial</button>
+  <button class="tab-btn" onclick="switchTab('config')">⚙️ Configuración</button>
+</nav>
+
+<!-- MAIN -->
+<main class="app-main">
+
+  <!-- ===== DASHBOARD ===== -->
+  <div id="tab-dashboard" class="tab-panel active">
+    <div class="section-header">
+      <div>
+        <div class="section-title">DASHBOARD</div>
+        <div class="section-subtitle" id="dashSubtitle">Resumen técnico del lote</div>
+      </div>
+      <div id="dashPhaseTag"></div>
+    </div>
+
+    <div id="noBatchMsg" class="alert alert-info">
+      ⚠️ No hay lote configurado. Ve a <strong>Configuración</strong> para iniciar un lote.
+    </div>
+
+    <div id="dashContent" style="display:none">
+      <!-- PEAK BANNER -->
+      <div id="peakBanner" class="peak-banner" style="display:none">
+        🏆 <span id="peakBannerText">Pico de postura alcanzado</span>
+      </div>
+
+      <!-- METRICS ROW -->
+      <div class="grid-4" style="margin-bottom:20px">
+        <div class="metric-card yellow">
+          <div class="metric-label">Edad Actual</div>
+          <div class="metric-value" id="mAge">—</div>
+          <div class="metric-sub" id="mAgeSub">semanas</div>
+          <div class="metric-icon">📅</div>
+        </div>
+        <div class="metric-card blue">
+          <div class="metric-label">Aves Presentes</div>
+          <div class="metric-value" id="mBirds">—</div>
+          <div class="metric-sub" id="mMortSub">mortalidad acum.</div>
+          <div class="metric-icon">🐔</div>
+        </div>
+        <div class="metric-card green">
+          <div class="metric-label">% Postura</div>
+          <div class="metric-value" id="mPostura">—</div>
+          <div class="metric-sub" id="mPosturaSub">último registro</div>
+          <div class="metric-icon">🥚</div>
+        </div>
+        <div class="metric-card purple">
+          <div class="metric-label">Masa de Huevo</div>
+          <div class="metric-value" id="mMasa">—</div>
+          <div class="metric-sub">g/ave/día</div>
+          <div class="metric-icon">⚖️</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <!-- CHART POSTURA/PESO -->
+        <div class="card">
+          <div class="card-title">📈 Curva de Postura / Peso</div>
+          <div class="chart-container"><canvas id="chartMain"></canvas></div>
+        </div>
+        <!-- CONVERSION + MORTALIDAD -->
+        <div class="card">
+          <div class="card-title">🔄 Conversión Alimenticia & Mortalidad</div>
+          <div class="chart-container"><canvas id="chartCA"></canvas></div>
+        </div>
+      </div>
+
+      <!-- LEVANTE SECTION -->
+      <div id="levanteSection" style="display:none">
+        <div class="card">
+          <div class="card-title">⚖️ Peso vs Estándar — Fase de Levante</div>
+          <div class="chart-container"><canvas id="chartPeso"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title">📏 Uniformidad de Lote</div>
+          <div id="uniformidadDisplay"></div>
+        </div>
+      </div>
+
+      <!-- PRODUCCION STATS -->
+      <div id="prodSection" style="display:none">
+        <div class="grid-3">
+          <div class="metric-card yellow">
+            <div class="metric-label">Conversión Alimenticia</div>
+            <div class="metric-value" id="mCA">—</div>
+            <div class="metric-sub">kg alim / kg huevo</div>
+            <div class="metric-icon">🔄</div>
+          </div>
+          <div class="metric-card green">
+            <div class="metric-label">Huevos Acumulados</div>
+            <div class="metric-value" id="mHuevosAcum">—</div>
+            <div class="metric-sub">total del lote</div>
+            <div class="metric-icon">🥚</div>
+          </div>
+          <div class="metric-card red">
+            <div class="metric-label">Mortalidad Acum.</div>
+            <div class="metric-value" id="mMortAcum">—</div>
+            <div class="metric-sub" id="mMortPct">%</div>
+            <div class="metric-icon">📉</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== REGISTRO DIARIO ===== -->
+  <div id="tab-registro" class="tab-panel">
+    <div class="section-header">
+      <div>
+        <div class="section-title">REGISTRO DIARIO</div>
+        <div class="section-subtitle">Ingresa los datos del día</div>
+      </div>
+    </div>
+
+    <div id="noRegistroBatch" class="alert alert-info" style="display:none">
+      ⚠️ Configura un lote primero en la pestaña Configuración.
+    </div>
+
+    <div id="registroForm">
+      <div class="card">
+        <div class="card-title">📅 Fecha del Registro</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="regFecha" onchange="updateAgeDisplay()"/>
+          </div>
+          <div class="form-group">
+            <label>Edad Calculada</label>
+            <input type="text" id="regEdadDisplay" readonly placeholder="Ingresa fecha" style="color:var(--accent)"/>
+          </div>
+          <div class="form-group">
+            <label>Fase</label>
+            <input type="text" id="regFaseDisplay" readonly style="color:var(--text-muted)"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEVANTE FORM -->
+      <div id="formLevante" class="card" style="display:none">
+        <div class="card-title">⬆️ Datos Fase de Levante</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Peso Promedio (g)</label>
+            <input type="number" id="lPesoPromedio" placeholder="0" min="0" step="0.1"/>
+            <div class="info-text" id="lPesoEstandar">Estándar: —</div>
+          </div>
+          <div class="form-group">
+            <label>Peso Mínimo (g)</label>
+            <input type="number" id="lPesoMin" placeholder="0" min="0" step="0.1"/>
+            <div class="info-text">Para uniformidad</div>
+          </div>
+          <div class="form-group">
+            <label>Peso Máximo (g)</label>
+            <input type="number" id="lPesoMax" placeholder="0" min="0" step="0.1"/>
+            <div class="info-text">Para uniformidad</div>
+          </div>
+          <div class="form-group">
+            <label>Consumo Alim. Acum. (kg)</label>
+            <input type="number" id="lConsumoAcum" placeholder="0" min="0" step="0.1"/>
+          </div>
+          <div class="form-group">
+            <label>Bajas del día</label>
+            <input type="number" id="lBajas" placeholder="0" min="0"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCCION FORM -->
+      <div id="formProduccion" style="display:none">
+
+        <!-- BLOQUE 1: RECOLECCION -->
+        <div class="card" style="border-left:3px solid var(--accent)">
+          <div class="card-title">&#x1F95A; Recoleccion de Huevo</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Huevos Recolectados (total)</label>
+              <input type="number" id="pHuevos" placeholder="ej: 4800" min="0" oninput="calcularPostura()"/>
+              <div class="info-text">Total de huevos del dia</div>
+            </div>
+            <div class="form-group">
+              <label>Huevos 1ra Calidad</label>
+              <input type="number" id="pHuevos1ra" placeholder="ej: 4700" min="0"/>
+              <div class="info-text">Sin defectos ni roturas</div>
+            </div>
+            <div class="form-group">
+              <label>Huevos Rotos / Descarte</label>
+              <input type="number" id="pDescarte" placeholder="0" min="0" oninput="calcularPostura()"/>
+              <div class="info-text">Descarte del dia</div>
+            </div>
+            <div class="form-group">
+              <label>Huevos de Piso</label>
+              <input type="number" id="pHuevosPiso" placeholder="0" min="0"/>
+              <div class="info-text">Huevos fuera de nido</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE 2: MASA DE HUEVO -->
+        <div class="card" style="border-left:3px solid var(--green)">
+          <div class="card-title">&#x2696;&#xFE0F; Masa de Huevo</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Peso Promedio Huevo (g)</label>
+              <input type="number" id="pPesoHuevo" placeholder="ej: 63.5" min="40" max="100" step="0.1" oninput="calcularPostura()"/>
+              <div class="info-text">Muestra representativa</div>
+            </div>
+            <div class="form-group">
+              <label>Peso Minimo Huevo (g)</label>
+              <input type="number" id="pPesoHuevoMin" placeholder="ej: 52" min="30" max="100" step="0.1"/>
+              <div class="info-text">Huevo mas pequeno del muestreo</div>
+            </div>
+            <div class="form-group">
+              <label>Peso Maximo Huevo (g)</label>
+              <input type="number" id="pPesoHuevoMax" placeholder="ej: 74" min="30" max="120" step="0.1"/>
+              <div class="info-text">Huevo mas grande del muestreo</div>
+            </div>
+            <div class="form-group">
+              <label>N de Huevos en Muestreo</label>
+              <input type="number" id="pMuestreo" placeholder="ej: 30" min="1"/>
+              <div class="info-text">Cuantos huevos se pesaron</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE 3: MORTALIDAD -->
+        <div class="card" style="border-left:3px solid var(--red)">
+          <div class="card-title">&#x1F480; Mortalidad y Aves</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Aves Presentes Hoy</label>
+              <input type="number" id="pAvesPres" placeholder="0" min="0" oninput="calcularPostura()"/>
+              <div class="info-text" id="pAvesRef">Cargando referencia...</div>
+            </div>
+            <div class="form-group">
+              <label>Bajas del Dia (muertas)</label>
+              <input type="number" id="pBajas" placeholder="0" min="0" oninput="calcularPostura()"/>
+              <div class="info-text">Aves muertas encontradas hoy</div>
+            </div>
+            <div class="form-group">
+              <label>Aves Eliminadas / Culling</label>
+              <input type="number" id="pCulling" placeholder="0" min="0"/>
+              <div class="info-text">Eliminadas por criterio tecnico</div>
+            </div>
+            <div class="form-group">
+              <label>Causa de Mortalidad</label>
+              <select id="pCausaMort">
+                <option value="">Sin bajas / No aplica</option>
+                <option value="respiratoria">Enfermedad respiratoria</option>
+                <option value="digestiva">Enfermedad digestiva</option>
+                <option value="calor">Golpe de calor</option>
+                <option value="traumatismo">Traumatismo</option>
+                <option value="prolapso">Prolapso</option>
+                <option value="pecking">Canibalismo / Picaje</option>
+                <option value="desconocida">Desconocida</option>
+                <option value="otra">Otra</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE 4: ALIMENTACION -->
+        <div class="card" style="border-left:3px solid var(--blue)">
+          <div class="card-title">&#x1F33E; Alimentacion y Agua</div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Alimento Suministrado (g/ave/dia)</label>
+              <input type="number" id="pAlimento" placeholder="ej: 115" min="0" step="0.1" oninput="calcularPostura()"/>
+              <div class="info-text">Consumo diario por ave</div>
+            </div>
+            <div class="form-group">
+              <label>Alimento Total Entregado (kg)</label>
+              <input type="number" id="pAlimentoTotal" placeholder="ej: 575" min="0" step="0.1"/>
+              <div class="info-text">Total del lote en el dia</div>
+            </div>
+            <div class="form-group">
+              <label>Consumo de Agua (L/ave/dia)</label>
+              <input type="number" id="pAgua" placeholder="ej: 0.25" min="0" step="0.01"/>
+              <div class="info-text">Ref: aprox 2x consumo alimento</div>
+            </div>
+            <div class="form-group">
+              <label>Temperatura Max Galpon (C)</label>
+              <input type="number" id="pTemp" placeholder="ej: 28" min="-5" max="50" step="0.1"/>
+              <div class="info-text">Temperatura interior del galpon</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULTADOS EN TIEMPO REAL -->
+        <div class="card" style="border:1px solid var(--accent)">
+          <div class="card-title">&#x1F9EE; Resultados Calculados en Tiempo Real</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">% Postura</div>
+              <div style="font-family:var(--font-head);font-size:28px;font-weight:800" id="calcPostura">--</div>
+              <div class="metric-sub">Huevos / Aves x 100</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">Masa de Huevo</div>
+              <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--green)" id="calcMasa">--</div>
+              <div class="metric-sub">g/ave/dia</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">Conv. Alimenticia</div>
+              <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--blue)" id="calcCA">--</div>
+              <div class="metric-sub">g alim / g huevo</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">Huevos / Ave Aloj.</div>
+              <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--purple)" id="calcHAA">--</div>
+              <div class="metric-sub">acumulado</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">Mortalidad Acum.</div>
+              <div style="font-family:var(--font-head);font-size:28px;font-weight:800;color:var(--red)" id="calcMortAcum">--</div>
+              <div class="metric-sub" id="calcMortPct">aves</div>
+            </div>
+            <div style="text-align:center;padding:14px;background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border)">
+              <div class="metric-label" style="margin-bottom:6px">Pico Maximo</div>
+              <div style="font-family:var(--font-head);font-size:22px;font-weight:800;color:var(--accent)" id="calcPico">--</div>
+              <div class="metric-sub">maximo historico</div>
+            </div>
+          </div>
+          <div id="calcInterpretacion" style="margin-top:12px;padding:10px 14px;border-radius:6px;font-size:13px;display:none"></div>
+        </div>
+
+        <!-- NOTAS -->
+        <div class="card">
+          <div class="card-title">&#x1F4DD; Notas del Dia</div>
+          <div class="form-group">
+            <textarea id="pNotas" rows="3" placeholder="Observaciones del dia: enfermedades, cambios de dieta, mantenimiento..." style="resize:vertical"></textarea>
+          </div>
+        </div>
+
+      </div>
+      <div id="regFormBtns" class="card" style="display:flex;gap:12px;align-items:center;justify-content:flex-end">
+        <button class="btn btn-secondary" onclick="clearRegForm()">Limpiar</button>
+        <button class="btn btn-primary" onclick="guardarRegistro()">💾 Guardar Registro</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== HISTORIAL ===== -->
+  <div id="tab-historial" class="tab-panel">
+    <div class="section-header">
+      <div>
+        <div class="section-title">HISTORIAL</div>
+        <div class="section-subtitle">Todos los registros del lote</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">⬇️ Exportar CSV</button>
+        <button class="btn btn-danger btn-sm" onclick="clearAllRecords()">🗑️ Borrar Todo</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table id="historialTable">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Semana</th>
+              <th>Día</th>
+              <th>Fase</th>
+              <th>Aves</th>
+              <th>Huevos</th>
+              <th>% Postura</th>
+              <th>Masa Huevo</th>
+              <th>Conv. Alim.</th>
+              <th>Peso (g)</th>
+              <th>Bajas</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="historialBody"></tbody>
+        </table>
+      </div>
+      <div id="historialEmpty" class="empty-state">
+        <div class="empty-icon">📋</div>
+        <p>No hay registros aún. Comienza ingresando datos en Registro Diario.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONFIGURACIÓN ===== -->
+  <div id="tab-config" class="tab-panel">
+    <div class="section-header">
+      <div>
+        <div class="section-title">CONFIGURACIÓN DE LOTE</div>
+        <div class="section-subtitle">Define los parámetros iniciales</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🐔 Datos del Lote</div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre del Lote</label>
+          <input type="text" id="cfgNombre" placeholder="Ej: Lote A – Galpón 1"/>
+        </div>
+        <div class="form-group">
+          <label>Fecha de Nacimiento</label>
+          <input type="date" id="cfgFechaNac"/>
+        </div>
+        <div class="form-group">
+          <label>N° Aves Alojadas</label>
+          <input type="number" id="cfgAves" placeholder="5000" min="1"/>
+        </div>
+        <div class="form-group">
+          <label>Línea Genética</label>
+          <select id="cfgLinea" onchange="updateVarianteOptions()">
+            <option value="">-- Seleccionar --</option>
+            <option value="hyline">Hy-Line</option>
+            <option value="isa">ISA</option>
+            <option value="babcock">Babcock</option>
+            <option value="lohmann">Lohmann</option>
+            <option value="novogen">Novogen</option>
+            <option value="hn">H&amp;N</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Variante</label>
+          <select id="cfgVariante">
+            <option value="">-- Primero elige línea --</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Galpón / Nave</label>
+          <input type="text" id="cfgGalpon" placeholder="Ej: Galpón 1"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Estándares de la Línea Seleccionada</div>
+      <div id="standardPreview" class="alert alert-info">Selecciona una línea genética para ver los estándares.</div>
+    </div>
+
+    <div style="display:flex;gap:12px;justify-content:flex-end;margin-bottom:20px">
+      <button class="btn btn-danger btn-sm" onclick="resetAll()">🗑️ Resetear Todo</button>
+      <button class="btn btn-primary" onclick="guardarConfig()">💾 Guardar Configuración</button>
+    </div>
+
+    <div class="card">
+      <div class="card-title">ℹ️ Acerca de AviControl Pro</div>
+      <p style="color:var(--text-muted);font-size:13px;line-height:1.7">
+        AviControl Pro es una herramienta de gestión técnica para explotaciones avícolas de gallinas ponedoras. 
+        Permite el seguimiento de la fase de levante (0–18 semanas) y la fase de producción, con cálculos automáticos 
+        de postura, masa de huevo, conversión alimenticia y mortalidad acumulada. Los datos se almacenan localmente 
+        en el navegador (localStorage) y no se envían a ningún servidor.
+      </p>
+      <hr class="divider"/>
+      <div style="color:var(--text-dim);font-size:12px;font-family:var(--font-head);letter-spacing:1px">
+        AVICONTROL PRO v1.0 — Uso técnico veterinario y zootécnico
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="app-version">AVICONTROL PRO v1.0 — Control Técnico Avícola</div>
+
+<script>
+// ============================================================
+// DATA & STATE
+// ============================================================
+const LINES = {
+  hyline: {
+    name: 'Hy-Line',
+    variantes: {
+      'W-36': { color: 'white', pesoStd: [65,100,148,197,255,312,369,421,468,511,549,583,612,636,654,670,683,695] },
+      'W-80': { color: 'white', pesoStd: [68,105,153,205,262,318,373,425,473,515,553,587,617,642,661,677,690,702] },
+      'Brown': { color: 'brown', pesoStd: [75,115,168,228,296,372,448,524,598,668,730,786,836,878,912,940,960,978] },
+      'Silver Brown': { color: 'brown', pesoStd: [73,112,163,221,287,362,436,510,582,650,712,768,818,860,895,924,946,964] }
+    }
+  },
+  isa: {
+    name: 'ISA',
+    variantes: {
+      'Brown': { color: 'brown', pesoStd: [72,112,163,222,289,366,443,519,592,660,722,778,826,867,900,927,948,965] },
+      'White': { color: 'white', pesoStd: [62,97,143,192,248,304,358,408,454,496,533,566,595,619,638,654,667,678] }
+    }
+  },
+  babcock: {
+    name: 'Babcock',
+    variantes: {
+      'Brown': { color: 'brown', pesoStd: [70,109,160,218,285,360,435,508,580,647,708,763,811,851,884,911,932,948] },
+      'White': { color: 'white', pesoStd: [60,94,138,185,240,295,348,397,442,483,519,551,579,602,620,636,648,658] }
+    }
+  },
+  lohmann: {
+    name: 'Lohmann',
+    variantes: {
+      'LSL-Classic': { color: 'white', pesoStd: [63,98,144,193,249,305,359,409,455,496,533,565,594,618,637,653,666,677] },
+      'Brown-Classic': { color: 'brown', pesoStd: [71,111,162,220,286,362,437,511,583,650,711,766,814,854,887,914,935,951] }
+    }
+  },
+  novogen: {
+    name: 'Novogen',
+    variantes: {
+      'Novogen White': { color: 'white', pesoStd: [61,95,140,188,243,298,352,401,447,488,525,557,586,609,628,644,657,668] },
+      'Novogen Brown': { color: 'brown', pesoStd: [69,108,157,214,280,354,428,500,571,637,698,753,801,842,876,903,924,940] }
+    }
+  },
+  hn: {
+    name: 'H&N',
+    variantes: {
+      'Nick Chick': { color: 'white', pesoStd: [64,100,146,196,253,310,365,416,463,505,542,575,604,628,647,663,676,687] },
+      'Brown Nick': { color: 'brown', pesoStd: [73,113,165,224,291,367,443,518,591,659,720,775,823,863,896,923,944,960] }
+    }
+  }
+};
+
+const PHASE_DAYS = 126; // day 0-126 = levante, 127+ = produccion
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const s = localStorage.getItem('avicontrol_state');
+    return s ? JSON.parse(s) : getDefaultState();
+  } catch(e) { return getDefaultState(); }
+}
+
+function getDefaultState() {
+  return {
+    batch: null,
+    records: []
+  };
+}
+
+function saveState() {
+  localStorage.setItem('avicontrol_state', JSON.stringify(state));
+}
+
+// ============================================================
+// HELPERS
+// ============================================================
+function dateDiff(d1, d2) {
+  // returns days from d1 to d2 (d2 - d1)
+  const a = new Date(d1), b = new Date(d2);
+  return Math.floor((b - a) / 86400000);
+}
+
+function daysToAge(days) {
+  const w = Math.floor(days / 7);
+  const d = days % 7;
+  return { weeks: w, days: d, total: days };
+}
+
+function getPhase(days) {
+  return days <= PHASE_DAYS ? 'Levante' : 'Producción';
+}
+
+function fmtDate(d) {
+  if (!d) return '—';
+  const parts = d.split('-');
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function round2(v) { return Math.round(v * 100) / 100; }
+
+function getStd(lineKey, varName, week) {
+  try {
+    const data = LINES[lineKey].variantes[varName].pesoStd;
+    const idx = Math.min(week - 1, data.length - 1);
+    return idx >= 0 ? data[idx] : null;
+  } catch(e) { return null; }
+}
+
+function getCurrentAvesPresentes() {
+  if (!state.batch) return 0;
+  let bajas = 0;
+  state.records.forEach(r => { bajas += (r.bajas || 0); });
+  return state.batch.aves - bajas;
+}
+
+function getMortAcum() {
+  let t = 0;
+  state.records.forEach(r => { t += (r.bajas || 0); });
+  return t;
+}
+
+function getHuevosAcum() {
+  let t = 0;
+  state.records.forEach(r => { if (r.fase === 'Producción') t += (r.huevos || 0); });
+  return t;
+}
+
+function getPeakInfo() {
+  const prodRecs = state.records.filter(r => r.fase === 'Producción' && r.postura != null);
+  let peakVal = 0, peakDate = null;
+  let above90Start = null, above90Days = 0;
+  prodRecs.forEach(r => {
+    if (r.postura > peakVal) { peakVal = r.postura; peakDate = r.fecha; }
+  });
+  // count consecutive days above 90
+  for (let i = 0; i < prodRecs.length; i++) {
+    if (prodRecs[i].postura >= 90) {
+      if (!above90Start) above90Start = prodRecs[i].fecha;
+      above90Days++;
+    } else { above90Days = 0; above90Start = null; }
+  }
+  return { peakVal: round2(peakVal), peakDate, above90Days };
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (tab === 'historial') renderHistorial();
+  if (tab === 'registro') renderRegistroForm();
+  if (tab === 'config') renderConfig();
+}
+
+// ============================================================
+// CONFIG
+// ============================================================
+const VARIANTE_MAP = {
+  hyline: ['W-36','W-80','Brown','Silver Brown'],
+  isa: ['Brown','White'],
+  babcock: ['Brown','White'],
+  lohmann: ['LSL-Classic','Brown-Classic'],
+  novogen: ['Novogen White','Novogen Brown'],
+  hn: ['Nick Chick','Brown Nick']
+};
+
+function updateVarianteOptions() {
+  const l = document.getElementById('cfgLinea').value;
+  const sel = document.getElementById('cfgVariante');
+  sel.innerHTML = '<option value="">-- Seleccionar --</option>';
+  if (l && VARIANTE_MAP[l]) {
+    VARIANTE_MAP[l].forEach(v => {
+      const o = document.createElement('option');
+      o.value = v; o.textContent = v;
+      sel.appendChild(o);
+    });
+  }
+  updateStandardPreview();
+}
+
+function updateStandardPreview() {
+  const l = document.getElementById('cfgLinea').value;
+  const v = document.getElementById('cfgVariante').value;
+  const el = document.getElementById('standardPreview');
+  if (!l || !v) { el.innerHTML = 'Selecciona línea y variante para ver los estándares.'; return; }
+  const data = LINES[l].variantes[v];
+  if (!data) return;
+  let html = `<div style="font-family:var(--font-head);margin-bottom:10px;font-size:15px;color:var(--accent)">
+    ${LINES[l].name} — ${v} <span class="badge ${data.color==='brown'?'badge-yellow':'badge-blue'}">${data.color==='brown'?'Brown':'White'}</span>
+  </div>`;
+  html += '<div style="overflow-x:auto"><table><thead><tr>';
+  html += data.pesoStd.map((_,i) => `<th>Sem ${i+1}</th>`).join('');
+  html += '</tr></thead><tbody><tr>';
+  html += data.pesoStd.map(p => `<td><strong>${p}</strong>g</td>`).join('');
+  html += '</tr></tbody></table></div>';
+  el.innerHTML = html;
+  el.className = 'alert alert-success';
+}
+
+function renderConfig() {
+  if (state.batch) {
+    document.getElementById('cfgNombre').value = state.batch.nombre || '';
+    document.getElementById('cfgFechaNac').value = state.batch.fechaNac || '';
+    document.getElementById('cfgAves').value = state.batch.aves || '';
+    document.getElementById('cfgLinea').value = state.batch.linea || '';
+    document.getElementById('cfgGalpon').value = state.batch.galpon || '';
+    updateVarianteOptions();
+    document.getElementById('cfgVariante').value = state.batch.variante || '';
+    updateStandardPreview();
+  }
+}
+
+function guardarConfig() {
+  const nombre = document.getElementById('cfgNombre').value.trim();
+  const fechaNac = document.getElementById('cfgFechaNac').value;
+  const aves = parseInt(document.getElementById('cfgAves').value);
+  const linea = document.getElementById('cfgLinea').value;
+  const variante = document.getElementById('cfgVariante').value;
+  const galpon = document.getElementById('cfgGalpon').value.trim();
+
+  if (!nombre || !fechaNac || !aves || !linea || !variante) {
+    alert('Por favor completa todos los campos obligatorios.'); return;
+  }
+
+  state.batch = { nombre, fechaNac, aves, linea, variante, galpon, savedAt: new Date().toISOString() };
+  saveState();
+  updateHeaderBatch();
+  alert('✅ Configuración guardada correctamente.');
+}
+
+function updateHeaderBatch() {
+  const el = document.getElementById('headerBatchInfo');
+  if (!state.batch) { el.innerHTML = 'Sin lote configurado'; return; }
+  el.innerHTML = `<strong>${state.batch.nombre}</strong> — ${LINES[state.batch.linea]?.name} ${state.batch.variante}`;
+}
+
+function resetAll() {
+  if (!confirm('⚠️ ¿Seguro que deseas borrar TODOS los datos del lote y registros? Esta acción no se puede deshacer.')) return;
+  state = getDefaultState();
+  saveState();
+  updateHeaderBatch();
+  renderConfig();
+  alert('Datos eliminados.');
+}
+
+// ============================================================
+// REGISTRO FORM
+// ============================================================
+function renderRegistroForm() {
+  if (!state.batch) {
+    document.getElementById('noRegistroBatch').style.display = '';
+    document.getElementById('registroForm').style.display = 'none';
+    return;
+  }
+  document.getElementById('noRegistroBatch').style.display = 'none';
+  document.getElementById('registroForm').style.display = '';
+  // Always set today if empty, then ALWAYS call updateAgeDisplay
+  if (!document.getElementById('regFecha').value) {
+    document.getElementById('regFecha').value = new Date().toISOString().split('T')[0];
+  }
+  updateAgeDisplay(); // <-- FIX: always trigger so forms appear
+}
+
+function updateAgeDisplay() {
+  if (!state.batch) return;
+  const fecha = document.getElementById('regFecha').value;
+  if (!fecha) return;
+  const days = dateDiff(state.batch.fechaNac, fecha);
+  if (days < 0) {
+    document.getElementById('regEdadDisplay').value = 'Fecha anterior al nacimiento';
+    document.getElementById('regFaseDisplay').value = '';
+    document.getElementById('formLevante').style.display = 'none';
+    document.getElementById('formProduccion').style.display = 'none';
+    return;
+  }
+  const age = daysToAge(days);
+  document.getElementById('regEdadDisplay').value = `Sem ${age.weeks} — Día ${age.total}`;
+  const fase = getPhase(days);
+  document.getElementById('regFaseDisplay').value = fase;
+  document.getElementById('formLevante').style.display = fase === 'Levante' ? '' : 'none';
+  document.getElementById('formProduccion').style.display = fase === 'Producción' ? '' : 'none';
+
+  // show standard for this week
+  if (fase === 'Levante' && age.weeks > 0) {
+    const std = getStd(state.batch.linea, state.batch.variante, age.weeks);
+    document.getElementById('lPesoEstandar').textContent = std ? `Estándar semana ${age.weeks}: ${std}g` : 'Sin estándar';
+  }
+  if (fase === 'Producción') {
+    const avesAct = getCurrentAvesPresentes();
+    document.getElementById('pAvesPres').value = avesAct;
+    const refEl = document.getElementById('pAvesRef');
+    if (refEl) refEl.textContent = 'Ref: ' + avesAct.toLocaleString() + ' aves (calculado desde bajas acum.)';
+  }
+}
+
+function calcularPostura() {
+  const huevos = parseFloat(document.getElementById('pHuevos').value) || 0;
+  const aves = parseFloat(document.getElementById('pAvesPres').value) || 0;
+  const pesoHuevo = parseFloat(document.getElementById('pPesoHuevo').value) || 0;
+  const alimento = parseFloat(document.getElementById('pAlimento').value) || 0;
+  const bajas = parseInt(document.getElementById('pBajas').value) || 0;
+
+  const postura = aves > 0 ? (huevos / aves * 100) : 0;
+  const masa = pesoHuevo > 0 ? (pesoHuevo * postura / 100) : 0;
+  const ca = masa > 0 ? (alimento / masa) : 0;
+  const huevosAcum = getHuevosAcum() + huevos;
+  const haa = state.batch ? (huevosAcum / state.batch.aves) : 0;
+  const mortAcum = getMortAcum() + bajas;
+  const mortPct = state.batch ? (mortAcum / state.batch.aves * 100) : 0;
+  const peak = getPeakInfo();
+
+  const postEl = document.getElementById('calcPostura');
+  postEl.textContent = postura > 0 ? round2(postura).toFixed(1) + '%' : '--';
+  postEl.style.color = postura >= 90 ? 'var(--green)' : postura >= 70 ? 'var(--accent)' : postura > 0 ? 'var(--red)' : 'var(--text)';
+
+  document.getElementById('calcMasa').textContent = masa > 0 ? round2(masa).toFixed(1) + 'g' : '--';
+  document.getElementById('calcCA').textContent = ca > 0 ? round2(ca).toFixed(2) : '--';
+  document.getElementById('calcHAA').textContent = haa > 0 ? round2(haa).toFixed(2) : '--';
+  document.getElementById('calcMortAcum').textContent = mortAcum > 0 ? mortAcum : '--';
+  document.getElementById('calcMortPct').textContent = mortAcum > 0 ? mortPct.toFixed(2) + '% mortalidad' : 'aves';
+
+  const bestPeak = Math.max(peak.peakVal, postura);
+  document.getElementById('calcPico').textContent = bestPeak > 0 ? bestPeak.toFixed(1) + '%' : '--';
+
+  // Interpretacion automatica
+  const interp = document.getElementById('calcInterpretacion');
+  if (postura > 0) {
+    let msg = '', color = '';
+    if (postura >= 90) { msg = '&#x1F3C6; EXCELENTE: Produccion en pico optimo (>=90%). Mantener el manejo actual.'; color = 'var(--green-dim); border:1px solid var(--green); color:var(--green)'; }
+    else if (postura >= 80) { msg = '&#x2705; BUENA: Produccion dentro del rango esperado (80-90%).'; color = 'var(--accent-dim); border:1px solid var(--accent); color:var(--accent)'; }
+    else if (postura >= 65) { msg = '&#x26A0;&#xFE0F; REGULAR: Produccion por debajo del optimo. Revisar alimentacion, sanidad y estres.'; color = 'var(--accent-dim); border:1px solid var(--accent); color:var(--accent)'; }
+    else { msg = '&#x274C; BAJA: Produccion critica (<65%). Requiere revision inmediata del manejo sanitario y nutricional.'; color = 'var(--red-dim); border:1px solid var(--red); color:var(--red)'; }
+    interp.style.cssText = 'margin-top:12px;padding:10px 14px;border-radius:6px;font-size:13px;background:' + color;
+    interp.innerHTML = msg;
+    interp.style.display = '';
+  } else {
+    interp.style.display = 'none';
+  }
+}
+
+function clearRegForm() {
+  ['lPesoPromedio','lPesoMin','lPesoMax','lConsumoAcum','lBajas',
+   'pHuevos','pHuevos1ra','pDescarte','pHuevosPiso',
+   'pPesoHuevo','pPesoHuevoMin','pPesoHuevoMax','pMuestreo',
+   'pAvesPres','pBajas','pCulling',
+   'pAlimento','pAlimentoTotal','pAgua','pTemp','pNotas'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  const causEl = document.getElementById('pCausaMort');
+  if (causEl) causEl.value = '';
+  ['calcPostura','calcMasa','calcCA','calcHAA','calcMortAcum','calcPico'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '--';
+  });
+  const interp = document.getElementById('calcInterpretacion');
+  if (interp) interp.style.display = 'none';
+  const mortPct = document.getElementById('calcMortPct');
+  if (mortPct) mortPct.textContent = 'aves';
+}
+
+function guardarRegistro() {
+  if (!state.batch) { alert('Configura un lote primero.'); return; }
+  const fecha = document.getElementById('regFecha').value;
+  if (!fecha) { alert('Selecciona una fecha.'); return; }
+
+  const days = dateDiff(state.batch.fechaNac, fecha);
+  if (days < 0) { alert('La fecha es anterior al nacimiento.'); return; }
+
+  // Check duplicate
+  const dup = state.records.find(r => r.fecha === fecha);
+  if (dup) {
+    if (!confirm('Ya existe un registro para esta fecha. ¿Deseas reemplazarlo?')) return;
+    state.records = state.records.filter(r => r.fecha !== fecha);
+  }
+
+  const age = daysToAge(days);
+  const fase = getPhase(days);
+  let record = { fecha, dias: days, semanas: age.weeks, fase };
+
+  if (fase === 'Levante') {
+    record.peso = parseFloat(document.getElementById('lPesoPromedio').value) || null;
+    record.pesoMin = parseFloat(document.getElementById('lPesoMin').value) || null;
+    record.pesoMax = parseFloat(document.getElementById('lPesoMax').value) || null;
+    record.consumoAcum = parseFloat(document.getElementById('lConsumoAcum').value) || null;
+    record.bajas = parseInt(document.getElementById('lBajas').value) || 0;
+    if (age.weeks > 0) record.pesoStd = getStd(state.batch.linea, state.batch.variante, age.weeks);
+  } else {
+    const huevos = parseFloat(document.getElementById('pHuevos').value) || 0;
+    const aves = parseFloat(document.getElementById('pAvesPres').value) || 0;
+    const pesoHuevo = parseFloat(document.getElementById('pPesoHuevo').value) || 0;
+    const alimento = parseFloat(document.getElementById('pAlimento').value) || 0;
+    record.huevos = huevos;
+    record.huevos1ra = parseFloat(document.getElementById('pHuevos1ra').value) || null;
+    record.huevosPiso = parseFloat(document.getElementById('pHuevosPiso').value) || null;
+    record.avesPres = aves;
+    record.pesoHuevo = pesoHuevo;
+    record.pesoHuevoMin = parseFloat(document.getElementById('pPesoHuevoMin').value) || null;
+    record.pesoHuevoMax = parseFloat(document.getElementById('pPesoHuevoMax').value) || null;
+    record.muestreo = parseFloat(document.getElementById('pMuestreo').value) || null;
+    record.alimento = alimento;
+    record.alimentoTotal = parseFloat(document.getElementById('pAlimentoTotal').value) || null;
+    record.agua = parseFloat(document.getElementById('pAgua').value) || null;
+    record.temp = parseFloat(document.getElementById('pTemp').value) || null;
+    record.bajas = parseInt(document.getElementById('pBajas').value) || 0;
+    record.culling = parseInt(document.getElementById('pCulling').value) || 0;
+    record.descarte = parseInt(document.getElementById('pDescarte').value) || 0;
+    record.causaMort = document.getElementById('pCausaMort').value || '';
+    record.notas = document.getElementById('pNotas').value.trim() || '';
+    record.postura = aves > 0 ? round2(huevos / aves * 100) : 0;
+    record.masa = pesoHuevo > 0 ? round2(pesoHuevo * record.postura / 100) : 0;
+    record.ca = record.masa > 0 ? round2(alimento / record.masa) : 0;
+    record.esPico = record.postura >= 90;
+  }
+
+  state.records.push(record);
+  state.records.sort((a,b) => a.fecha.localeCompare(b.fecha));
+  saveState();
+  clearRegForm();
+  alert('✅ Registro guardado correctamente.');
+}
+
+// ============================================================
+// HISTORIAL
+// ============================================================
+function renderHistorial() {
+  const tbody = document.getElementById('historialBody');
+  const empty = document.getElementById('historialEmpty');
+  tbody.innerHTML = '';
+
+  const recs = [...state.records].reverse();
+  if (!recs.length) { empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  recs.forEach(r => {
+    const tr = document.createElement('tr');
+    const faseTag = r.fase === 'Levante'
+      ? '<span class="badge badge-blue">Levante</span>'
+      : '<span class="badge badge-green">Producción</span>';
+    const posturaTag = r.postura != null
+      ? `<span class="badge ${r.postura>=90?'badge-green':r.postura>=70?'badge-yellow':'badge-red'}">${r.postura.toFixed(1)}%</span>`
+      : '—';
+    const picoTag = r.esPico ? ' <span class="badge badge-green">🏆 PICO</span>' : '';
+
+    tr.innerHTML = `
+      <td>${fmtDate(r.fecha)}</td>
+      <td>${r.semanas}</td>
+      <td>${r.dias}</td>
+      <td>${faseTag}</td>
+      <td>${r.avesPres ?? getCurrentAvesPresentes()}</td>
+      <td>${r.huevos ?? '—'}</td>
+      <td>${posturaTag}${picoTag}</td>
+      <td>${r.masa != null ? r.masa.toFixed(1)+'g' : '—'}</td>
+      <td>${r.ca != null ? r.ca.toFixed(2) : '—'}</td>
+      <td>${r.peso ?? '—'}</td>
+      <td>${r.bajas || 0}</td>
+      <td><button class="del-btn" onclick="deleteRecord('${r.fecha}')">✕</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function deleteRecord(fecha) {
+  if (!confirm(`¿Eliminar el registro del ${fmtDate(fecha)}?`)) return;
+  state.records = state.records.filter(r => r.fecha !== fecha);
+  saveState();
+  renderHistorial();
+}
+
+function clearAllRecords() {
+  if (!confirm('⚠️ ¿Borrar TODOS los registros? Esta acción no se puede deshacer.')) return;
+  state.records = [];
+  saveState();
+  renderHistorial();
+}
+
+function exportCSV() {
+  if (!state.records.length) { alert('No hay registros para exportar.'); return; }
+  const headers = ['Fecha','Semana','Dia','Fase','AvesPres','Huevos','PosturaPct','MasaHuevo','ConvAlim','Peso_g','Bajas'];
+  const rows = state.records.map(r => [
+    r.fecha, r.semanas, r.dias, r.fase,
+    r.avesPres??'', r.huevos??'',
+    r.postura!=null?r.postura.toFixed(2):'',
+    r.masa!=null?r.masa.toFixed(2):'',
+    r.ca!=null?r.ca.toFixed(2):'',
+    r.peso??'', r.bajas||0
+  ]);
+  const csv = [headers, ...rows].map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `avicontrol_${state.batch?.nombre||'lote'}_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+let chartMain = null, chartCA = null, chartPeso = null;
+
+function renderDashboard() {
+  if (!state.batch) {
+    document.getElementById('noBatchMsg').style.display = '';
+    document.getElementById('dashContent').style.display = 'none';
+    return;
+  }
+  document.getElementById('noBatchMsg').style.display = 'none';
+  document.getElementById('dashContent').style.display = '';
+
+  const today = new Date().toISOString().split('T')[0];
+  const days = dateDiff(state.batch.fechaNac, today);
+  const age = daysToAge(days);
+  const fase = getPhase(days);
+
+  // Update subtitle
+  document.getElementById('dashSubtitle').textContent =
+    `${state.batch.nombre} — ${LINES[state.batch.linea]?.name} ${state.batch.variante}`;
+
+  // Phase tag
+  const phaseEl = document.getElementById('dashPhaseTag');
+  phaseEl.innerHTML = fase === 'Levante'
+    ? '<span class="badge badge-blue" style="font-size:13px;padding:6px 14px">🐣 LEVANTE</span>'
+    : '<span class="badge badge-green" style="font-size:13px;padding:6px 14px">🥚 PRODUCCIÓN</span>';
+
+  // Metrics
+  document.getElementById('mAge').textContent = age.weeks;
+  document.getElementById('mAgeSub').textContent = `semanas — día ${days}`;
+  const mort = getMortAcum();
+  const aves = state.batch.aves - mort;
+  document.getElementById('mBirds').textContent = aves.toLocaleString();
+  document.getElementById('mMortSub').textContent = `${mort} bajas acumuladas`;
+
+  // Last production record
+  const prodRecs = state.records.filter(r => r.fase === 'Producción');
+  const lastProd = prodRecs[prodRecs.length - 1];
+  if (lastProd) {
+    document.getElementById('mPostura').textContent = lastProd.postura?.toFixed(1) + '%';
+    document.getElementById('mPosturaSub').textContent = `Último: ${fmtDate(lastProd.fecha)}`;
+    document.getElementById('mMasa').textContent = lastProd.masa?.toFixed(1) + 'g';
+    document.getElementById('mCA').textContent = lastProd.ca?.toFixed(2);
+    document.getElementById('mHuevosAcum').textContent = getHuevosAcum().toLocaleString();
+    document.getElementById('mMortAcum').textContent = mort;
+    document.getElementById('mMortPct').textContent = ((mort / state.batch.aves) * 100).toFixed(2) + '% mortalidad';
+    document.getElementById('prodSection').style.display = '';
+  } else {
+    document.getElementById('mPostura').textContent = '—';
+    document.getElementById('mPosturaSub').textContent = 'Sin registros de prod.';
+    document.getElementById('mMasa').textContent = '—';
+    document.getElementById('prodSection').style.display = 'none';
+  }
+
+  // Peak
+  const peak = getPeakInfo();
+  if (peak.peakVal >= 90) {
+    document.getElementById('peakBanner').style.display = '';
+    document.getElementById('peakBannerText').textContent =
+      `🏆 Pico de postura: ${peak.peakVal.toFixed(1)}% (${fmtDate(peak.peakDate)}) — ${peak.above90Days} días con ≥90%`;
+  } else { document.getElementById('peakBanner').style.display = 'none'; }
+
+  // LEVANTE section
+  const levRecs = state.records.filter(r => r.fase === 'Levante' && r.peso);
+  if (levRecs.length) {
+    document.getElementById('levanteSection').style.display = '';
+    renderPesoChart(levRecs);
+    renderUniformidad(levRecs);
+  } else { document.getElementById('levanteSection').style.display = 'none'; }
+
+  renderMainChart();
+  renderCAChart();
+}
+
+function renderMainChart() {
+  const canvas = document.getElementById('chartMain');
+  if (chartMain) { chartMain.destroy(); chartMain = null; }
+  
+  const prodRecs = state.records.filter(r => r.fase === 'Producción' && r.postura != null);
+  const levRecs = state.records.filter(r => r.fase === 'Levante');
+
+  if (!prodRecs.length && !levRecs.length) {
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle = '#4a5260';
+    ctx.font = '14px Barlow Condensed';
+    ctx.textAlign = 'center';
+    ctx.fillText('Sin registros aún', canvas.width/2, 130);
+    return;
+  }
+
+  // Use prod if exists, else show levante weight
+  if (prodRecs.length) {
+    const labels = prodRecs.map(r => `S${r.semanas}D${r.dias}`);
+    const postData = prodRecs.map(r => r.postura);
+    chartMain = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: '% Postura',
+          data: postData,
+          borderColor: '#f0a500',
+          backgroundColor: 'rgba(240,165,0,0.1)',
+          pointBackgroundColor: prodRecs.map(r => r.postura>=90?'#3fb950':'#f0a500'),
+          pointRadius: 4,
+          fill: true, tension: 0.3
+        },{
+          label: 'Línea 90%',
+          data: prodRecs.map(() => 90),
+          borderColor: '#3fb950',
+          borderDash: [6,3],
+          pointRadius: 0,
+          fill: false
+        }]
+      },
+      options: chartOpts('% Postura', 0, 105)
+    });
+  } else {
+    // levante weight
+    const labels = levRecs.map(r => `S${r.semanas}`);
+    const pesoData = levRecs.map(r => r.peso);
+    const stdData = levRecs.map(r => r.pesoStd || null);
+    chartMain = new Chart(canvas, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Peso Real (g)',
+          data: pesoData,
+          borderColor: '#f0a500',
+          backgroundColor: 'rgba(240,165,0,0.1)',
+          fill: true, tension: 0.3, pointRadius: 4
+        },{
+          label: 'Estándar',
+          data: stdData,
+          borderColor: '#58a6ff',
+          borderDash: [6,3],
+          fill: false, tension: 0.3, pointRadius: 2
+        }]
+      },
+      options: chartOpts('Peso (g)')
+    });
+  }
+}
+
+function renderCAChart() {
+  const canvas = document.getElementById('chartCA');
+  if (chartCA) { chartCA.destroy(); chartCA = null; }
+  const prodRecs = state.records.filter(r => r.fase === 'Producción' && r.ca != null);
+  if (!prodRecs.length) return;
+  const labels = prodRecs.map(r => `S${r.semanas}`);
+  chartCA = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Conv. Alimenticia',
+        data: prodRecs.map(r => r.ca),
+        borderColor: '#bc8cff',
+        backgroundColor: 'rgba(188,140,255,0.1)',
+        fill: true, tension: 0.3, pointRadius: 3,
+        yAxisID: 'y'
+      },{
+        label: 'Mortalidad Acum.',
+        data: prodRecs.map((_, i) => {
+          const slice = state.records.filter(r => r.fase === 'Producción').slice(0, i+1);
+          return slice.reduce((a,r) => a + (r.bajas||0), 0);
+        }),
+        borderColor: '#f85149',
+        backgroundColor: 'rgba(248,81,73,0.08)',
+        fill: true, tension: 0.3, pointRadius: 3,
+        yAxisID: 'y2'
+      }]
+    },
+    options: {
+      ...chartOpts('Conv. Alimenticia'),
+      scales: {
+        x: { ticks: { color: '#7d8590', font:{family:'Barlow Condensed'} }, grid:{ color:'#2d333b' } },
+        y: { ticks: { color: '#bc8cff', font:{family:'Barlow Condensed'} }, grid:{color:'#2d333b'}, position:'left' },
+        y2: { ticks: { color: '#f85149', font:{family:'Barlow Condensed'} }, position:'right', grid:{display:false} }
+      }
+    }
+  });
+}
+
+function renderPesoChart(levRecs) {
+  const canvas = document.getElementById('chartPeso');
+  if (chartPeso) { chartPeso.destroy(); chartPeso = null; }
+  const labels = levRecs.map(r => `Sem ${r.semanas}`);
+  chartPeso = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Peso Real (g)',
+        data: levRecs.map(r => r.peso),
+        borderColor: '#f0a500',
+        backgroundColor: 'rgba(240,165,0,0.1)',
+        fill: true, tension: 0.3, pointRadius: 5
+      },{
+        label: 'Estándar (g)',
+        data: levRecs.map(r => r.pesoStd || null),
+        borderColor: '#58a6ff',
+        borderDash: [6,3],
+        fill: false, tension: 0.3, pointRadius: 3
+      }]
+    },
+    options: chartOpts('Peso (g)')
+  });
+}
+
+function renderUniformidad(levRecs) {
+  const el = document.getElementById('uniformidadDisplay');
+  const lastWithMinMax = [...levRecs].reverse().find(r => r.pesoMin && r.pesoMax && r.peso);
+  if (!lastWithMinMax) {
+    el.innerHTML = '<p class="metric-sub">Registra peso mínimo y máximo para calcular uniformidad.</p>';
+    return;
+  }
+  const r = lastWithMinMax;
+  const rango = r.pesoMax - r.pesoMin;
+  const cv = rango / r.peso * 100;
+  // Uniformidad aprox (% dentro de ±10% del promedio)
+  const low = r.peso * 0.9, high = r.peso * 1.1;
+  // approximate with gaussian: simplified approach
+  const uniformPct = Math.max(0, Math.min(100, 100 - cv * 1.2));
+  const color = uniformPct >= 80 ? 'var(--green)' : uniformPct >= 70 ? 'var(--accent)' : 'var(--red)';
+
+  el.innerHTML = `
+    <div class="uniformity-gauge">
+      <div class="gauge-circle" style="color:${color}">
+        <span>${Math.round(uniformPct)}</span>
+        <span class="gauge-label">%</span>
+      </div>
+      <div>
+        <div style="font-family:var(--font-head);font-size:16px;font-weight:700;color:${color}">
+          ${uniformPct >= 80 ? '✅ Buena' : uniformPct >= 70 ? '⚠️ Regular' : '❌ Deficiente'} Uniformidad
+        </div>
+        <div class="gauge-text">Semana ${r.semanas} — Peso prom: ${r.peso}g | Rango: ${r.pesoMin}–${r.pesoMax}g | CV: ${cv.toFixed(1)}%</div>
+        <div class="gauge-text" style="margin-top:4px">
+          ${uniformPct >= 80 ? 'El lote tiene buena uniformidad. Continue el manejo actual.' :
+            uniformPct >= 70 ? 'Uniformidad aceptable. Revise distribución de alimento y densidad.' :
+            'Uniformidad baja. Revise manejo de alimentación, espacio y sanidad.'}
+        </div>
+      </div>
+    </div>`;
+}
+
+function chartOpts(label, min, max) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { labels: { color: '#7d8590', font: { family: 'Barlow Condensed', size: 12 } } },
+      tooltip: {
+        backgroundColor: '#161b22',
+        borderColor: '#2d333b',
+        borderWidth: 1,
+        titleColor: '#f0a500',
+        bodyColor: '#e6edf3'
+      }
+    },
+    scales: {
+      x: { ticks: { color: '#7d8590', font: { family: 'Barlow Condensed' } }, grid: { color: '#2d333b' } },
+      y: {
+        ticks: { color: '#7d8590', font: { family: 'Barlow Condensed' } },
+        grid: { color: '#2d333b' },
+        ...(min !== undefined ? { min } : {}),
+        ...(max !== undefined ? { max } : {})
+      }
+    }
+  };
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    const splash = document.getElementById('splash');
+    splash.style.opacity = '0';
+    setTimeout(() => splash.remove(), 400);
+  }, 1200);
+
+  updateHeaderBatch();
+
+  // Set today in registro
+  const regFecha = document.getElementById('regFecha');
+  regFecha.value = new Date().toISOString().split('T')[0];
+
+  renderConfig();
+  renderDashboard();
+  renderHistorial();
+});
+</script>
+</body>
+</html>
