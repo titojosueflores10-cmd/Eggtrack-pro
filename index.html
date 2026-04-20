@@ -686,6 +686,15 @@
             </div>
             <div class="form-group">
               <label>Alimento Total Entregado (kg)</label>
+              <div class="form-group">
+  <label>Precio por huevo (Q)</label>
+  <input type="number" id="precioHuevo" step="0.01" oninput="calcularRentabilidad()">
+</div>
+
+<div class="form-group">
+  <label>Costo alimento (Q/kg)</label>
+  <input type="number" id="costoAlimento" step="0.01" oninput="calcularRentabilidad()">
+</div>
               <input type="number" id="pAlimentoTotal" placeholder="ej: 575" min="0" step="0.1"/>
               <div class="info-text">Total del lote en el dia</div>
             </div>
@@ -738,7 +747,8 @@
             </div>
           </div>
           <div id="calcInterpretacion" style="margin-top:12px;padding:10px 14px;border-radius:6px;font-size:13px;display:none"></div>
-        </div>
+        </div> 
+        <div id="rentabilidadEstado" class="alert" style="margin-top:10px;display:none"></div>
 
         <!-- NOTAS -->
         <div class="card">
@@ -1669,6 +1679,34 @@ document.addEventListener('DOMContentLoaded', () => {
   renderConfig();
   renderDashboard();
   renderHistorial();
+  // ===============================
+// RENTABILIDAD DIARIA
+// ===============================
+function calcularRentabilidad() {
+  const huevos = parseFloat(document.getElementById('pHuevos')?.value) || 0;
+  const precio = parseFloat(document.getElementById('precioHuevo')?.value) || 0;
+
+  const alimentoTotal = parseFloat(document.getElementById('pAlimentoTotal')?.value) || 0;
+  const costoAlimento = parseFloat(document.getElementById('costoAlimento')?.value) || 0;
+
+  const ingreso = huevos * precio;
+  const costo = alimentoTotal * costoAlimento;
+  const ganancia = ingreso - costo;
+
+  const el = document.getElementById('rentabilidadEstado');
+  if (!el) return;
+
+  el.style.display = '';
+
+  if (ganancia < 0) {
+    el.className = 'alert alert-danger';
+    el.innerHTML = `⚠️ Rentabilidad negativa<br>
+    Ingreso: Q${ingreso.toFixed(2)} | Costo: Q${costo.toFixed(2)}`;
+  } else {
+    el.className = 'alert alert-success';
+    el.innerHTML = `✅ Ganancia neta: Q${ganancia.toFixed(2)}`;
+  }
+}
 });
 </script>
 </body>
