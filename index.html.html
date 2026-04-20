@@ -2230,6 +2230,10 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('rPrecioHuevo')?.addEventListener('input',e=>localStorage.setItem('avi_ph',e.target.value));
   document.getElementById('rCostoKg')?.addEventListener('input',e=>localStorage.setItem('avi_ck',e.target.value));
 });
+   <script>
+  if('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
 </script>
 </body>
 </html>
